@@ -1,0 +1,30 @@
+version: '3'
+services:
+
+    owntracks-http:
+        build: ./
+        container_name: owntracks-http
+        environment:
+            - OWNTRACKS_HTTP_SERVER_PORT=${OWNTRACKS_HTTP_SERVER_PORT}
+            - OWNTRACKS_HTTP_MQTT_PORT=${OWNTRACKS_HTTP_MQTT_PORT}
+            - OWNTRACKS_HTTP_MQTT_HOST=${OWNTRACKS_HTTP_MQTT_HOST}
+            - OWNTRACKS_HTTP_MQTT_USER=${OWNTRACKS_HTTP_MQTT_USER}
+            - OWNTRACKS_HTTP_MQTT_PASSWORD=${OWNTRACKS_HTTP_MQTT_PASSWORD}
+            - OWNTRACKS_HTTP_MQTT_CA_CERT=${OWNTRACKS_HTTP_MQTT_CA_CERT}
+        labels:
+            - "traefik.docker.network=web"
+            - "traefik.enable=true"
+            - "traefik.http.routers.owntracks-http.rule=Host(`${OWNTRACKS_HTTP_SERVER_HOST}`) && PathPrefix(`/owntracks`)"
+            - "traefik.http.services.owntracks-http.loadbalancer.server.port=${OWNTRACKS_HTTP_SERVER_PORT}"
+            - "traefik.http.routers.owntracks-http.entrypoints=webs"
+            - "traefik.http.routers.owntracks-http.tls.certresolver=myresolver"
+            - "traefik.http.routers.owntracks-http.middlewares=owntracks-http-stripprefix"
+            - "traefik.http.middlewares.owntracks-http-stripprefix.stripprefix.prefixes=/owntracks"
+        restart: unless-stopped
+        networks:
+            - web
+            - default
+
+networks:
+    web:
+        external: true
